@@ -8,10 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
@@ -23,8 +23,14 @@ public class UserController {
     @Autowired
     private IUserRepository userRepository;
 
+    /**
+     * Creates a new user.
+     *
+     * @param userModel The details of the user to be created.
+     * @return ResponseEntity with created user and corresponding HTTP status code
+     */
     @PostMapping("")
-    public ResponseEntity create(@RequestBody UserModel userModel) {
+    public ResponseEntity<?> create(@RequestBody UserModel userModel) {
         UserModel existingUser = this.userRepository.findByUsername(userModel.getUsername());
         if (existingUser != null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User already exists.");
@@ -36,18 +42,28 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userCreated);
     }
 
-    @GetMapping("")
-    public List<UserModel> getUsers() {
-        List<UserModel> users = this.userRepository.findAll();
-        return users;
+    /**
+     * Gets the list of all users.
+     *
+     * @return ResponseEntity with the user list and corresponding HTTP status code
+     */
+    @GetMapping
+    public ResponseEntity<List<UserModel>> getUsers() {
+        List<UserModel> tasks = this.userRepository.findAll();
+        return new ResponseEntity<>(tasks, HttpStatus.OK);
     }
 
-    @GetMapping(":id")
-    public ResponseEntity getUserById(@RequestParam UUID id) {
+    /**
+     * Gets user by id.
+     *
+     * @return ResponseEntity with the user and corresponding HTTP status code
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable UUID id) {
         Optional<UserModel> user = this.userRepository.findById(id);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not exists.");
+        if (user.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
         }
-        return ResponseEntity.status(HttpStatus.FOUND).body(user);
+        return ResponseEntity.status(HttpStatus.OK).body(user.get());
     }
 }
