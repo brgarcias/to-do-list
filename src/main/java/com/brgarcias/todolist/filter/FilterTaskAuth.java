@@ -61,6 +61,7 @@ public class FilterTaskAuth extends OncePerRequestFilter {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Authorization Header");
             }
         }
+        filterChain.doFilter(request, response);
     }
 
 }
