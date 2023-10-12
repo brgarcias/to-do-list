@@ -29,7 +29,7 @@ public class UserController {
      * @param userModel The details of the user to be created.
      * @return ResponseEntity with created user and corresponding HTTP status code
      */
-    @PostMapping("")
+    @PostMapping
     public ResponseEntity<?> create(@RequestBody UserModel userModel) {
         UserModel existingUser = this.userRepository.findByUsername(userModel.getUsername());
         if (existingUser != null) {

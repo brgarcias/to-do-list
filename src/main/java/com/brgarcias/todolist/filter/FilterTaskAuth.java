@@ -29,9 +29,10 @@ public class FilterTaskAuth extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        String servletPath = request.getServletPath();
         String authorization = request.getHeader("Authorization");
 
-        if (authorization != null && authorization.startsWith(BASIC_PREFIX)) {
+        if (authorization != null && authorization.startsWith(BASIC_PREFIX) && servletPath.startsWith("/tasks")) {
             try {
                 String base64Credentials = authorization.substring(BASIC_PREFIX.length()).trim();
                 byte[] authDecoded = Base64.getDecoder().decode(base64Credentials);
@@ -51,6 +52,7 @@ public class FilterTaskAuth extends OncePerRequestFilter {
                                 user.getPassword());
 
                         if (passwordVerificationResult.verified) {
+                            request.setAttribute("idUser", user.getId());
                             filterChain.doFilter(request, response);
                         } else {
                             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
@@ -60,8 +62,9 @@ public class FilterTaskAuth extends OncePerRequestFilter {
             } catch (Exception e) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Authorization Header");
             }
+        } else {
+            filterChain.doFilter(request, response);
         }
-        filterChain.doFilter(request, response);
     }
 
 }
