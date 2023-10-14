@@ -94,17 +94,23 @@ public class TaskController {
      *
      * @param taskModel The details of the task to be updated.
      * @param id        The ID of the task to be updated.
+     * @param idUser    The user's ID requesting the task update.
      * @return ResponseEntity with updated task and corresponding HTTP status code
      */
     @PatchMapping("/{id}")
-    public ResponseEntity<?> update(@RequestBody TaskModel taskModel, @PathVariable UUID id) {
+    public ResponseEntity<?> update(@RequestBody TaskModel taskModel, @PathVariable UUID id,
+            @RequestAttribute("idUser") UUID idUser) {
 
         TaskModel existingTask = taskRepository.findById(id).orElse(null);
         if (existingTask == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Task not found.");
         }
-        Utils.copyNullProperties(taskModel, existingTask);
 
+        if (!existingTask.getIdUser().equals(idUser)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User was not permitted to update this task.");
+        }
+
+        Utils.copyNullProperties(taskModel, existingTask);
         TaskModel updatedTask = this.taskRepository.save(existingTask);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(updatedTask);
     }
